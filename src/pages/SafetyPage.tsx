@@ -236,7 +236,7 @@ export default function SafetyPage() {
                         {zone.name}
                       </span>
                       <span className="text-xs text-slate-400">
-                        {zone.distanceFromEntry}m · {zone.estimatedTimeOneWay}min单程
+                        {zone.distanceFromEntry}m · {zone.estimatedTimeOneWay.toFixed(1)}min单程
                       </span>
                     </div>
                     {!safe && reason && (

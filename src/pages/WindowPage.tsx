@@ -47,8 +47,8 @@ export default function WindowPage() {
     if (!zoneForm.name) return;
 
     const estimatedTimeOneWay = Math.round(
-      (zoneForm.distanceFromEntry / zoneForm.walkingSpeed) * 60
-    );
+      (zoneForm.distanceFromEntry / zoneForm.walkingSpeed) * 10
+    ) / 10;
 
     if (editingZone) {
       updateCollectionZone(editingZone.id, {
@@ -264,14 +264,14 @@ export default function WindowPage() {
                       <div className="bg-slate-800/50 rounded-lg p-2">
                         <div className="flex items-center justify-center gap-1 text-green-400">
                           <Footprints size={12} />
-                          <span className="font-bold">{zone.estimatedTimeOneWay}min</span>
+                          <span className="font-bold">{zone.estimatedTimeOneWay.toFixed(1)}min</span>
                         </div>
                         <div className="text-xs text-slate-400">单程</div>
                       </div>
                       <div className="bg-slate-800/50 rounded-lg p-2">
                         <div className="flex items-center justify-center gap-1 text-yellow-400">
                           <Timer size={12} />
-                          <span className="font-bold">{zone.estimatedTimeOneWay * 2 + SAFETY_MARGIN_MINUTES}min</span>
+                          <span className="font-bold">{(zone.estimatedTimeOneWay * 2 + SAFETY_MARGIN_MINUTES).toFixed(1)}min</span>
                         </div>
                         <div className="text-xs text-slate-400">含余量往返</div>
                       </div>
@@ -358,10 +358,10 @@ export default function WindowPage() {
                 </div>
                 <div className="p-3 bg-[#3E92CC]/10 rounded-xl">
                   <div className="text-sm text-[#3E92CC]">
-                    预计单程时间：<span className="font-bold">{Math.round((zoneForm.distanceFromEntry / zoneForm.walkingSpeed) * 60)}分钟</span>
+                    预计单程时间：<span className="font-bold">{(zoneForm.distanceFromEntry / zoneForm.walkingSpeed).toFixed(1)}分钟</span>
                   </div>
                   <div className="text-sm text-slate-400 mt-1">
-                    往返含安全余量：<span className="font-bold">{Math.round((zoneForm.distanceFromEntry / zoneForm.walkingSpeed) * 60) * 2 + SAFETY_MARGIN_MINUTES}分钟</span>
+                    往返含安全余量：<span className="font-bold">{(Math.round((zoneForm.distanceFromEntry / zoneForm.walkingSpeed) * 10) / 10 * 2 + SAFETY_MARGIN_MINUTES).toFixed(1)}分钟</span>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">

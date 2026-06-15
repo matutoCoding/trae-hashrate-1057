@@ -65,7 +65,7 @@ export const DEFAULT_COLLECTION_ZONES: CollectionZone[] = [
     distanceFromEntry: 500,
     walkingSpeed: 60,
     targetTideHeight: 100,
-    estimatedTimeOneWay: 10,
+    estimatedTimeOneWay: 8.3,
     notes: '多花蛤、小螃蟹，适合新手',
   },
   {
@@ -75,7 +75,7 @@ export const DEFAULT_COLLECTION_ZONES: CollectionZone[] = [
     distanceFromEntry: 1200,
     walkingSpeed: 50,
     targetTideHeight: 80,
-    estimatedTimeOneWay: 25,
+    estimatedTimeOneWay: 24,
     notes: '蛏子密集，需带专用工具',
   },
   {
@@ -85,7 +85,7 @@ export const DEFAULT_COLLECTION_ZONES: CollectionZone[] = [
     distanceFromEntry: 2000,
     walkingSpeed: 40,
     targetTideHeight: 50,
-    estimatedTimeOneWay: 45,
+    estimatedTimeOneWay: 50,
     notes: '野生牡蛎、海螺，大潮期才可到达',
   },
 ];

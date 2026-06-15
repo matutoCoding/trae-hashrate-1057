@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
 import PageLayout from '../components/Layout/PageLayout';
 import Card, { CardHeader, CardContent } from '../components/Card/Card';
@@ -59,13 +59,21 @@ export default function JournalPage() {
     return beaches.find(b => b.id === beachId)?.name || '未知海滩';
   };
 
-  const handleAddEntry = () => {
-    if (!entryForm.beachId) {
-      setEntryForm({ ...entryForm, beachId: beaches[0]?.id || '' });
+  useEffect(() => {
+    if (selectedEntry) {
+      const updated = journalEntries.find(j => j.id === selectedEntry.id);
+      if (updated) {
+        setSelectedEntry(updated);
+      }
     }
+  }, [journalEntries]);
+
+  const handleAddEntry = () => {
+    const beachId = entryForm.beachId || beaches[0]?.id || '';
 
     addJournalEntry({
       ...entryForm,
+      beachId,
       harvestItems: [],
       totalWeight: 0,
     });
@@ -96,11 +104,6 @@ export default function JournalPage() {
       quantity: 10,
       notes: '',
     });
-
-    const updated = journalEntries.find(j => j.id === selectedEntry.id);
-    if (updated) {
-      setSelectedEntry(updated);
-    }
   };
 
   const statsData = journalEntries.reduce((acc, entry) => {

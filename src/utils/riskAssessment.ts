@@ -17,7 +17,7 @@ export function calculateInundationRisk(
   const tideRiseRate = getTideRiseRate(tideData.hourlyData, currentTime);
   const inundationSpeed = estimateInundationSpeed(Math.abs(tideRiseRate), terrainSlope);
 
-  const safeReturnTime = (distance / walkingSpeed) * 60;
+  const safeReturnTime = Math.round((distance / walkingSpeed) * 10) / 10;
 
   const criticalWarning: string[] = [];
 
@@ -40,15 +40,15 @@ export function calculateInundationRisk(
     riskLevel = 'low';
   }
 
-  if (safeReturnTime > 60) {
-    criticalWarning.push('往返时间较长，注意控制活动范围');
+  if (safeReturnTime > 30) {
+    criticalWarning.push('单程返回时间较长，注意控制活动范围');
   }
 
   return {
     riskLevel,
     inundationSpeed: Math.round(inundationSpeed * 10) / 10,
     walkingSpeed,
-    safeReturnTime: Math.round(safeReturnTime),
+    safeReturnTime,
     criticalWarning,
   };
 }
@@ -125,7 +125,7 @@ export function generateAlerts(
         id: `zone-${zone.id}`,
         type: 'inundation',
         title: `${zone.name} 时间不足`,
-        description: `往返需${roundTrip}分钟，高潮前时间不足`,
+        description: `往返需${roundTrip.toFixed(1)}分钟，高潮前时间不足`,
         level: 'danger',
         time: now.format('HH:mm'),
         action: '不建议前往',
@@ -161,9 +161,13 @@ export function getSafeZones(
   tideData: TideDayData,
   currentTime: number = Date.now()
 ): { zone: CollectionZone; safe: boolean; reason: string }[] {
-  const currentHeight = tideData.hourlyData.find(
-    p => p.timestamp <= currentTime
-  )?.height || 0;
+  let currentHeight = 0;
+  for (let i = tideData.hourlyData.length - 1; i >= 0; i--) {
+    if (tideData.hourlyData[i].timestamp <= currentTime) {
+      currentHeight = tideData.hourlyData[i].height;
+      break;
+    }
+  }
 
   const nextHighTide = tideData.extremes.find(
     e => e.type === 'high' && e.timestamp > currentTime

@@ -92,9 +92,9 @@ export default function RiskGauge({
         </div>
         <div className="bg-slate-900/50 rounded-xl p-3">
           <div className="text-2xl font-bold text-green-400">
-            {safeReturnTime}
+            {safeReturnTime.toFixed(1)}
           </div>
-          <div className="text-xs text-slate-400 mt-1">安全返回 min</div>
+          <div className="text-xs text-slate-400 mt-1">单程返回 min</div>
         </div>
       </div>
     </div>
