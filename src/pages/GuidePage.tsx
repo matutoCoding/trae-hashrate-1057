@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
 import PageLayout from '../components/Layout/PageLayout';
 import Card, { CardHeader, CardContent } from '../components/Card/Card';
@@ -18,6 +18,7 @@ import {
   Share2,
   Copy,
   Check,
+  FileText,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { TideWindow } from '../types';
@@ -31,6 +32,8 @@ export default function GuidePage() {
     addTideWindow,
     updateTideWindow,
     deleteTideWindow,
+    guideDraft,
+    clearGuideDraft,
   } = useAppStore();
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -46,6 +49,23 @@ export default function GuidePage() {
     evacuationTime: '',
     dangerNotes: '',
   });
+
+  useEffect(() => {
+    if (guideDraft) {
+      setGuideForm({
+        name: guideDraft.name,
+        entryPoint: guideDraft.entryPoint,
+        waypoints: '',
+        collectionZones: guideDraft.collectionZones,
+        criticalTideHeight: guideDraft.criticalTideHeight,
+        evacuationTime: guideDraft.evacuationTime,
+        dangerNotes: guideDraft.dangerNotes,
+      });
+      setEditingGuide(null);
+      setShowAddForm(true);
+      clearGuideDraft();
+    }
+  }, [guideDraft]);
 
   const getBeachName = (beachId: string) => {
     return beaches.find(b => b.id === beachId)?.name || '未知海滩';

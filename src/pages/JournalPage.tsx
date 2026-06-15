@@ -17,10 +17,15 @@ import {
   X,
   PlusCircle,
   MinusCircle,
+  Waves,
+  Droplets,
+  Info,
 } from 'lucide-react';
 import dayjs from 'dayjs';
-import type { JournalEntry, HarvestItem } from '../types';
+import type { JournalEntry, HarvestItem, TideDayData } from '../types';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { TIDE_TYPE_LABELS, TIDE_TYPE_COLORS } from '../utils/constants';
+import { calculateDailyTideData } from '../utils/tideHarmonics';
 
 const weatherIcons: Record<string, React.ElementType> = {
   晴: Sun,
@@ -33,7 +38,20 @@ const weatherIcons: Record<string, React.ElementType> = {
 const COLORS = ['#3E92CC', '#F46036', '#2ECC71', '#F1C40F', '#9B59B6', '#E67E22'];
 
 export default function JournalPage() {
-  const { journalEntries, beaches, addJournalEntry, deleteJournalEntry, addHarvestItem, updateHarvestItem, deleteHarvestItem } = useAppStore();
+  const {
+    journalEntries,
+    beaches,
+    addJournalEntry,
+    deleteJournalEntry,
+    addHarvestItem,
+    updateHarvestItem,
+    deleteHarvestItem,
+    tideData,
+    currentBeachId,
+    setSelectedDate,
+    selectedDate,
+    recalculateTideData,
+  } = useAppStore();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
@@ -70,12 +88,35 @@ export default function JournalPage() {
 
   const handleAddEntry = () => {
     const beachId = entryForm.beachId || beaches[0]?.id || '';
+    const targetBeach = beaches.find(b => b.id === beachId);
+
+    let tideSnapshot = undefined;
+    if (targetBeach) {
+      try {
+        const date = dayjs(entryForm.date).toDate();
+        const dayTide = calculateDailyTideData(
+          targetBeach.harmonicParams,
+          date,
+          targetBeach.referenceLevel
+        );
+        tideSnapshot = {
+          tideType: dayTide.tideType,
+          predictedLowTide: dayTide.lowTide.height,
+          predictedHighTide: dayTide.highTide.height,
+          tidalRange: dayTide.highTide.height - dayTide.lowTide.height,
+          areaImpactPercent: dayTide.areaImpactPercent,
+          lowTideTime: dayTide.lowTide.time,
+          highTideTime: dayTide.highTide.time,
+        };
+      } catch {}
+    }
 
     addJournalEntry({
       ...entryForm,
       beachId,
       harvestItems: [],
       totalWeight: 0,
+      tideSnapshot,
     });
 
     setShowAddForm(false);
@@ -495,6 +536,57 @@ export default function JournalPage() {
                     </div>
                   </div>
                 </div>
+
+                {selectedEntry.tideSnapshot && (
+                  <div className="bg-slate-800/50 rounded-xl p-4">
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <Waves size={16} className="text-[#3E92CC]" />
+                      当日潮汐快照
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+                        <div className="text-xs text-slate-400 mb-0.5">潮型</div>
+                        <div
+                          className="text-sm font-bold"
+                          style={{ color: TIDE_TYPE_COLORS[selectedEntry.tideSnapshot.tideType] }}
+                        >
+                          {TIDE_TYPE_LABELS[selectedEntry.tideSnapshot.tideType]}
+                        </div>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+                        <div className="text-xs text-slate-400 mb-0.5">高潮</div>
+                        <div className="text-sm font-bold text-red-400">
+                          {selectedEntry.tideSnapshot.predictedHighTide}cm
+                        </div>
+                        <div className="text-[10px] text-slate-500">{selectedEntry.tideSnapshot.highTideTime}</div>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+                        <div className="text-xs text-slate-400 mb-0.5">低潮</div>
+                        <div className="text-sm font-bold text-blue-400">
+                          {selectedEntry.tideSnapshot.predictedLowTide}cm
+                        </div>
+                        <div className="text-[10px] text-slate-500">{selectedEntry.tideSnapshot.lowTideTime}</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-slate-900/50 rounded-lg p-2">
+                        <div className="text-xs text-slate-400">潮差</div>
+                        <div className="text-white font-bold">{selectedEntry.tideSnapshot.tidalRange}cm</div>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-lg p-2">
+                        <div className="text-xs text-slate-400">可及滩涂</div>
+                        <div className="text-white font-bold">{selectedEntry.tideSnapshot.areaImpactPercent}%</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-start gap-2">
+                      <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        实际赶海时段 {selectedEntry.startTime} - {selectedEntry.endTime}，
+                        实际高低潮 {selectedEntry.actualLowTide}cm - {selectedEntry.actualHighTide}cm。
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <h3 className="text-white font-semibold mb-2 flex items-center gap-2">

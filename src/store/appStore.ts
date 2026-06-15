@@ -23,6 +23,7 @@ import { calculateDailyTideData } from '../utils/tideHarmonics';
 import { calculateInundationRisk, generateAlerts, getSafeZones } from '../utils/riskAssessment';
 import { calculateGatheringWindow } from '../utils/timeUtils';
 import type { WindowPlan } from '../types';
+import { WALKING_SPEED_TIDELAND } from '../utils/constants';
 
 interface AppState {
   currentBeachId: string;
@@ -37,6 +38,14 @@ interface AppState {
   inundationRisk: InundationRisk | null;
   alerts: AlertItem[];
   currentTime: number;
+  guideDraft: {
+    name: string;
+    collectionZones: string[];
+    criticalTideHeight: number;
+    evacuationTime: string;
+    dangerNotes: string;
+    entryPoint: string;
+  } | null;
   setCurrentBeach: (beachId: string) => void;
   setSelectedDate: (date: string) => void;
   addBeach: (beach: Omit<Beach, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -51,10 +60,12 @@ interface AppState {
   updateTideWindow: (id: string, updates: Partial<TideWindow>) => void;
   deleteTideWindow: (id: string) => void;
   recalculateTideData: () => void;
-  recalculateRisk: (distance: number) => void;
+  recalculateRisk: (distance: number, walkingSpeed?: number) => void;
   addHarvestItem: (journalId: string, item: Omit<HarvestItem, 'id'>) => void;
   updateHarvestItem: (journalId: string, itemId: string, updates: Partial<HarvestItem>) => void;
   deleteHarvestItem: (journalId: string, itemId: string) => void;
+  setGuideDraft: (draft: AppState['guideDraft']) => void;
+  clearGuideDraft: () => void;
 }
 
 const getInitialBeachId = () => DEFAULT_BEACHES[0]?.id || '';
@@ -78,6 +89,10 @@ export const useAppStore = create<AppState>()(
       windowPlan: null,
       inundationRisk: null,
       alerts: [],
+      guideDraft: null,
+
+      setGuideDraft: (draft) => set({ guideDraft: draft }),
+      clearGuideDraft: () => set({ guideDraft: null }),
 
       setCurrentBeach: (beachId) => {
         set({ currentBeachId: beachId });
@@ -212,7 +227,7 @@ export const useAppStore = create<AppState>()(
         get().recalculateRisk(1000);
       },
 
-      recalculateRisk: (distance) => {
+      recalculateRisk: (distance, walkingSpeed) => {
         const { tideData, currentBeachId, beaches, collectionZones } = get();
         const beach = beaches.find((b) => b.id === currentBeachId);
         if (!beach || !tideData) return;
@@ -222,7 +237,7 @@ export const useAppStore = create<AppState>()(
           tideData,
           beach.terrainSlope,
           distance,
-          beachZones[0]?.walkingSpeed || 60
+          walkingSpeed || beachZones[0]?.walkingSpeed || WALKING_SPEED_TIDELAND
         );
         const alerts = generateAlerts(tideData, beachZones, risk);
 

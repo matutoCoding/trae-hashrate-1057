@@ -126,6 +126,16 @@ export function calculateDailyTideData(
   const extremes = findTideExtremes(hourlyData);
   const { type, range, areaImpact } = determineTideType(extremes, date);
 
+  const lowExtremes = extremes.filter(e => e.type === 'low');
+  const highExtremes = extremes.filter(e => e.type === 'high');
+
+  const lowTide = lowExtremes.reduce((prev, curr) =>
+    (prev && prev.height < curr.height) ? prev : curr, lowExtremes[0] || { time: '00:00', height: referenceLevel, timestamp: 0, type: 'low' as const }
+  );
+  const highTide = highExtremes.reduce((prev, curr) =>
+    (prev && prev.height > curr.height) ? prev : curr, highExtremes[0] || { time: '12:00', height: referenceLevel + 100, timestamp: 0, type: 'high' as const }
+  );
+
   return {
     date: dayjs(date).format('YYYY-MM-DD'),
     extremes,
@@ -133,6 +143,8 @@ export function calculateDailyTideData(
     tideType: type,
     tidalRange: range,
     areaImpactPercent: areaImpact,
+    lowTide: { time: lowTide.time, height: lowTide.height, timestamp: lowTide.timestamp },
+    highTide: { time: highTide.time, height: highTide.height, timestamp: highTide.timestamp },
   };
 }
 

@@ -38,6 +38,8 @@ export interface TideDayData {
   tideType: 'spring' | 'neap' | 'astronomical';
   tidalRange: number;
   areaImpactPercent: number;
+  lowTide: { time: string; height: number; timestamp: number };
+  highTide: { time: string; height: number; timestamp: number };
 }
 
 export interface CollectionZone {
@@ -93,6 +95,15 @@ export interface JournalEntry {
   totalWeight: number;
   notes: string;
   createdAt: string;
+  tideSnapshot?: {
+    tideType: 'spring' | 'neap' | 'astronomical';
+    predictedLowTide: number;
+    predictedHighTide: number;
+    tidalRange: number;
+    areaImpactPercent: number;
+    lowTideTime?: string;
+    highTideTime?: string;
+  };
 }
 
 export interface WindowPlan {
